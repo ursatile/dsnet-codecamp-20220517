@@ -22,8 +22,7 @@ namespace Autobarn.Website.Controllers.api {
         // GET: api/vehicles
         [HttpGet]
         [Produces("application/hal+json")]
-        public IActionResult Get(int index = 0, int count = 10)
-        {
+        public IActionResult Get(int index = 0, int count = 10) {
             var items = db.ListVehicles().Skip(index).Take(count)
                 .Select(v => v.ToHal());
 
@@ -53,21 +52,14 @@ namespace Autobarn.Website.Controllers.api {
             var vehicle = db.FindVehicle(id);
             if (vehicle == default) return NotFound();
             var result = vehicle.ToHal();
-            return Ok(result);
-        }
-
-        // POST api/vehicles
-        [HttpPost]
-        public IActionResult Post([FromBody] VehicleDto dto) {
-            var vehicleModel = db.FindModel(dto.ModelCode);
-            var vehicle = new Vehicle {
-                Registration = dto.Registration,
-                Color = dto.Color,
-                Year = dto.Year,
-                VehicleModel = vehicleModel
+            result._actions = new {
+                delete = new {
+                    href = $"/api/vehicles/{vehicle.Registration}",
+                    method = "DELETE",
+                    name = "Delete this vehicle"
+                }
             };
-            db.CreateVehicle(vehicle);
-            return Ok(dto);
+            return Ok(result);
         }
 
         // PUT api/vehicles/ABC123
