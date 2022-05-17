@@ -1,2 +1,18 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿using EasyNetQ;
+using Messages;
+const string AMQP = "amqps://wuhrwzeg:J7gFVyAHCH3SohigAX6t2BYmUOv4pKed@jackal.rmq.cloudamqp.com/wuhrwzeg";
+var bus = RabbitHutch.CreateBus(AMQP);
+var count = 0;
+while(true) {
+    Console.WriteLine("Press any key to publish a message!");
+    Console.ReadKey(true);
+    var greeting = new Greeting {
+        Name = "CodeCamp",
+        CreatedAt = DateTimeOffset.UtcNow,
+        Number = count++
+    };
+    bus.PubSub.Publish(greeting);
+    Console.WriteLine($"Sent {greeting}");
+}
+
+
