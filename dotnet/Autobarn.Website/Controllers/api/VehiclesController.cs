@@ -49,6 +49,17 @@ namespace Autobarn.Website.Controllers.api {
         public IActionResult Get(string id) {
             var vehicle = db.FindVehicle(id);
             if (vehicle == default) return NotFound();
+            //var result = new {
+            //    _links = new {
+            //        self = new {
+            //            href = $"/api/vehicles/{id}"
+            //        },
+            //        model = new {
+            //            href = $"/api/models/{vehicle.ModelCode}"
+            //        }
+            //    },
+            //    vehicle
+            //};
             var result = vehicle.ToDynamic();
             result._links = new {
                 self = new {
