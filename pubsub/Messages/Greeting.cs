@@ -10,4 +10,8 @@ public class Greeting
     {
         return $"{Number}: {Name} from {MachineName} at {CreatedAt:O}";
     }
+
+}
+public class Warning : Greeting {
+
 }
