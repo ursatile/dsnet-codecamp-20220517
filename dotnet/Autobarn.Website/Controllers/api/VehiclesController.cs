@@ -45,7 +45,6 @@ namespace Autobarn.Website.Controllers.api {
             return links;
         }
 
-
         // GET api/vehicles/ABC123
         [HttpGet("{id}")]
         public IActionResult Get(string id) {

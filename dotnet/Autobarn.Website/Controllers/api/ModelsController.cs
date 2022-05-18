@@ -2,40 +2,44 @@
 using Autobarn.Data.Entities;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.IO;
+using Autobarn.Messages;
 using Autobarn.Website.Models;
+using EasyNetQ;
 
 namespace Autobarn.Website.Controllers.api {
-	[Route("api/[controller]")]
-	[ApiController]
-	public class ModelsController : ControllerBase {
-		private readonly IAutobarnDatabase db;
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ModelsController : ControllerBase {
+        private readonly IAutobarnDatabase db;
+        private readonly IBus bus;
 
-		public ModelsController(IAutobarnDatabase db) {
-			this.db = db;
-		}
+        public ModelsController(IAutobarnDatabase db, IBus bus)
+        {
+            this.db = db;
+            this.bus = bus;
+        }
 
-		[HttpGet]
-		public IEnumerable<Model> Get() {
-			return db.ListModels();
-		}
+        [HttpGet]
+        public IEnumerable<Model> Get() {
+            return db.ListModels();
+        }
 
-		[HttpGet("{id}")]
-		public IActionResult Get(string id) {
-			var vehicleModel = db.FindModel(id);
-			if (vehicleModel == default) return NotFound();
+        [HttpGet("{id}")]
+        public IActionResult Get(string id) {
+            var vehicleModel = db.FindModel(id);
+            if (vehicleModel == default) return NotFound();
             var result = vehicleModel.ToDynamic();
-            result._actions = new
-            {
-                create = new
-                {
+            result._actions = new {
+                create = new {
                     href = $"/api/models/{vehicleModel.Code}",
                     type = "application/json",
                     name = $"Create a new {vehicleModel.Manufacturer.Name} {vehicleModel.Name}",
                     method = "POST",
                 }
             };
-			return Ok(result);
-		}
+            return Ok(result);
+        }
 
         // POST api/vehicles
         [HttpPost("{id}")]
@@ -51,11 +55,28 @@ namespace Autobarn.Website.Controllers.api {
                 VehicleModel = vehicleModel
             };
             db.CreateVehicle(vehicle);
+            PublishNewVehicleNotification(vehicle);
             return Created($"/api/vehicles/{vehicle.Registration}",
                 vehicle.ToHal());
-
         }
 
+        private void PublishNewVehicleNotification(Vehicle vehicle) {
+            var m = new NewVehicleMessage {
+                Registration = vehicle.Registration,
+                Make = vehicle.VehicleModel.Manufacturer.Name,
+                Color = vehicle.Color,
+                Model = vehicle.VehicleModel.Name,
+                Year = vehicle.Year,
+                Features = new[]
+                {
+                    "Metallic paint",
+                    "Blu-ray player",
+                    "Alloy wheels",
+                    "Flux capacitor"
+                }
+            };
+            bus.PubSub.Publish(m);
 
-	}
+        }
+    }
 }

@@ -2,10 +2,9 @@
 using Messages;
 const string AMQP = "amqps://wuhrwzeg:J7gFVyAHCH3SohigAX6t2BYmUOv4pKed@jackal.rmq.cloudamqp.com/wuhrwzeg";
 var bus = RabbitHutch.CreateBus(AMQP);
-const string subscriberId = "dylanbeattie";
-//                           ^ change this to your name!
-bus.PubSub.Subscribe<Greeting>(subscriberId, HandleGreeting);
-bus.PubSub.Subscribe<Warning>(subscriberId, HandleWarning);
+const string subscriberId = "dylanbeattie"; // change this to your name
+bus.PubSub.Subscribe<Greeting>(subscriberId, HandleGreeting, x => x.WithAutoDelete());
+bus.PubSub.Subscribe<Warning>(subscriberId, HandleWarning, x => x.WithAutoDelete());
 Console.WriteLine("Listening for messages...");
 Console.ReadLine();
 Console.WriteLine("Exiting cleanly. Thank you!");
