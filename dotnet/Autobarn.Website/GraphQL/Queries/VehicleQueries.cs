@@ -30,6 +30,14 @@ namespace Autobarn.Website.GraphQL.Queries {
                     "What color cars do you want?")),
                 resolve: GetVehiclesByColor);
 
+            Field<ListGraphType<VehicleGraphType>>("vehiclesByYearWithFilter",
+                "Query to retrieve all vehicles by year of manufacture",
+                new QueryArguments(MakeNonNullIntArgument("year",
+                        "What is the year the vehicle was built?"),
+                    MakeNonNullEnumArgument("operator",
+                        "newest/older/exact")),
+                resolve: GetVehiclesByYearWithFilter);
+
         }
 
         private IEnumerable<Vehicle> GetVehiclesByColor(IResolveFieldContext<object> context) {
@@ -43,6 +51,12 @@ namespace Autobarn.Website.GraphQL.Queries {
             };
         }
 
+        private QueryArgument MakeNonNullIntArgument(string name, string description) {
+            return new QueryArgument<NonNullGraphType<IntGraphType>> {
+                Name = name, Description = description
+            };
+        }
+
         private Vehicle GetVehicle(IResolveFieldContext<object> context) {
             var reg = context.GetArgument<string>("registration");
             return db.FindVehicle(reg);
@@ -50,6 +64,31 @@ namespace Autobarn.Website.GraphQL.Queries {
 
         private IEnumerable<Vehicle> GetAllVehicles(IResolveFieldContext<object> context) {
             return db.ListVehicles();
+        }
+
+        private object? GetVehiclesByYearWithFilter(IResolveFieldContext<object?> context) {
+            var year = context.GetArgument<int>("year");
+            var op = context.GetArgument<Operator>("operator");
+
+            return op switch {
+                Operator.Exact => db.ListVehicles().Where(v => v.Year == year),
+                Operator.Newer => db.ListVehicles().Where(v => v.Year > year),
+                Operator.Older => db.ListVehicles().Where(v => v.Year < year),
+                _ => throw new Exception("Invalid operator")
+            };
+        }
+
+        private QueryArgument MakeNonNullEnumArgument(string name, string description) {
+            return new QueryArgument<NonNullGraphType<EnumerationGraphType<Operator>>> {
+                Name = name,
+                Description = description
+            };
+        }
+
+        public enum Operator {
+            Older,
+            Newer,
+            Exact
         }
     }
 }
