@@ -11,14 +11,14 @@ class PricingService(pb2_grpc.PricerServicer):
 
     def GetPrice(self, request, context):
         print(request)
-        if "ford" in request.model.toLower():
+        if "ford" in request.model.lower():
             result = {'price':10000, 'currencyCode': 'USD'}
-        elif "dmc" in request.manufacturer.toLower():
+        elif "dmc" in request.manufacturer.lower():
             result = {'price':50000, 'currencyCode': 'EUR'}
         else:
             price = 1000 + (request.year * 10)
             result = {'price': price, 'currencyCode': 'GBP '}
-
+        print(result);
         return pb2.PriceReply(**result)
 
 def serve():

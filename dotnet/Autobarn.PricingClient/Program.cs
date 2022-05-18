@@ -11,7 +11,6 @@ namespace Autobarn.PricingClient {
     class Program {
         private static readonly IConfigurationRoot config = ReadConfiguration();
 
-
         static async Task Main(string[] args) {
             var grpcUrl = config.GetConnectionString("AutobarnPricingServerUrl");
             using var channel = GrpcChannel.ForAddress(grpcUrl);
@@ -35,8 +34,8 @@ namespace Autobarn.PricingClient {
                 Console.WriteLine($"{priceReply.Price} {priceReply.CurrencyCode}");
                 var nvpm = nvm.WithPrice(priceReply.Price, priceReply.CurrencyCode);
                 await bus.PubSub.PublishAsync(nvpm);
+                Console.WriteLine("Published!");
             };
-
         }
 
         private static IConfigurationRoot ReadConfiguration() {
